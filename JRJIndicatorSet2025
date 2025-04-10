@@ -1,0 +1,62 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © jrj102
+
+//@version=5
+indicator(title="JRJ Indicators - SMA 20/50/100/200/400", overlay=true)
+
+// === Inputs ===
+smaInput1 = input.int(10,   title="SMA10")
+smaInput2 = input.int(20,   title="SMA20")
+smaInput3 = input.int(50,   title="SMA50")
+smaInput4 = input.int(100,  title="SMA100")
+smaInput5 = input.int(200,  title="SMA200")
+smaInput6 = input.int(400,  title="SMA400")
+smaInput7 = input.int(500,  title="SMA500")
+
+// === Moving Averages ===
+sma1 = ta.sma(close, smaInput1)
+sma2 = ta.sma(close, smaInput2)
+sma3 = ta.sma(close, smaInput3)
+sma4 = ta.sma(close, smaInput4)
+sma5 = ta.sma(close, smaInput5)
+sma6 = ta.sma(close, smaInput6)
+sma7 = ta.sma(close, smaInput7)
+
+// === Plot SMAs ===
+plot(sma1, color=color.lime,   title="SMA10")
+plot(sma2, color=color.green,  title="SMA20")
+plot(sma3, color=color.yellow, title="SMA50")
+plot(sma4, color=color.orange, title="SMA100")
+plot(sma5, color=color.red,    title="SMA200")
+plot(sma6, color=color.white,  title="SMA400")
+plot(sma7, color=color.purple, title="SMA500")
+
+// === Swing Trading Inputs ===
+no       = input.int(3,     title="Swing")
+Barcolor = input.bool(false, title="Barcolor")
+Bgcolor  = input.bool(false, title="Bgcolor")
+
+// === Swing Logic ===
+res = ta.highest(high, no)
+sup = ta.lowest(low, no)
+
+// Replace iff() with PineScript’s ternary operator
+avd = close > res[1] ? 1 : close < sup[1] ? -1 : 0
+avn = ta.valuewhen(avd != 0, avd, 0)
+tsl = avn == 1 ? sup : res
+
+Buy  = ta.crossover(close, tsl)
+Sell = ta.crossunder(close, tsl)
+
+// === Plot Buy/Sell Shapes ===
+plotshape(Buy,  title="Buy",  color=#005500, style=shape.arrowup,   location=location.belowbar, text="Buy")
+plotshape(Sell, title="Sell", color=#550000, style=shape.arrowdown, location=location.abovebar, text="Sell")
+
+colr = close >= tsl ? color.green : close <= tsl ? color.red : na
+//plot(tsl, color=colr, linewidth=3, title="TSL")
+//barcolor(Barcolor ? colr : na)
+//bgcolor(Bgcolor ? colr : na)
+
+// === Alerts ===
+alertcondition(Buy,  title="Buy Signal",  message="Buy")
+alertcondition(Sell, title="Sell Signal", message="Sell")
